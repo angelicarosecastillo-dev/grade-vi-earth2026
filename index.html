@@ -1,0 +1,854 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Grade VI-Earth | San Antonio Este Elementary School | DepEd Nueva Ecija</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        earth: {
+                            50: '#f4f7f4',
+                            100: '#e3ebe3',
+                            200: '#c6d8c6',
+                            300: '#a1be9f',
+                            400: '#779e75',
+                            500: '#558053',
+                            600: '#426640',
+                            700: '#365234',
+                            800: '#2d432b',
+                            900: '#263825',
+                            950: '#131e13',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- SheetJS CDN for Excel Upload/Download -->
+    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+    <style>
+        @media print {
+            body * {
+                visibility: hidden;
+            }
+            #printableReportCard, #printableReportCard * {
+                visibility: visible;
+            }
+            #printableReportCard {
+                position: absolute;
+                left: 0;
+                top: 0;
+                width: 100%;
+                margin: 0;
+                padding: 15px;
+            }
+            .no-print {
+                display: none !important;
+            }
+        }
+    </style>
+</head>
+<body class="bg-gray-100 font-sans text-gray-800 min-h-screen flex flex-col">
+
+    <!-- Navigation / Header Bar -->
+    <header class="bg-earth-900 text-white shadow-lg sticky top-0 z-30 no-print border-b border-earth-700">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex items-center justify-between h-20">
+                <!-- School & Section Title -->
+                <div class="flex items-center space-x-3">
+                    <div class="w-10 h-10 rounded-xl bg-earth-500 flex items-center justify-center text-white shadow-inner font-bold text-xl border border-earth-400">
+                        <i class="fa-solid fa-leaf"></i>
+                    </div>
+                    <div>
+                        <div class="flex items-center space-x-2">
+                            <h1 class="text-xl font-extrabold tracking-tight text-white font-heading">Grade VI-Earth</h1>
+                            <span class="bg-earth-700 text-earth-100 text-xs px-2.5 py-0.5 rounded-full font-medium border border-earth-600">
+                                Lupao District
+                            </span>
+                        </div>
+                        <p class="text-xs text-earth-200">San Antonio Este Elementary School &bull; DepEd Nueva Ecija</p>
+                    </div>
+                </div>
+
+                <!-- Global Selectors & Utilities -->
+                <div class="flex items-center space-x-3">
+                    <!-- Term Selector -->
+                    <div class="bg-earth-800/80 p-1.5 rounded-lg border border-earth-700 flex items-center space-x-2">
+                        <i class="fa-regular fa-calendar-check text-earth-300 text-xs pl-2"></i>
+                        <select id="termSelect" onchange="handleTermChange()" class="bg-earth-900 text-white text-xs font-medium rounded px-2 py-1 border border-earth-600 focus:outline-none focus:ring-1 focus:ring-earth-400">
+                            <option value="Term 1">Term 1 (S.Y. 2026-2027)</option>
+                            <option value="Term 2">Term 2 (S.Y. 2026-2027)</option>
+                            <option value="Term 3">Term 3 (S.Y. 2026-2027)</option>
+                            <option value="FINAL">Final Grade (Full Year)</option>
+                        </select>
+                    </div>
+
+                    <!-- Academic Year Badge -->
+                    <div class="hidden md:flex items-center bg-earth-800/80 p-1.5 rounded-lg border border-earth-700 space-x-2">
+                        <i class="fa-solid fa-graduation-cap text-earth-300 text-xs pl-2"></i>
+                        <select id="sySelect" class="bg-earth-900 text-white text-xs font-medium rounded px-2 py-1 border border-earth-600 focus:outline-none">
+                            <option value="S.Y. 2026 - 2027">S.Y. 2026 - 2027</option>
+                        </select>
+                    </div>
+
+                    <!-- Excel Upload & Template Buttons -->
+                    <button onclick="openExcelModal()" class="bg-earth-600 hover:bg-earth-500 text-white px-3 py-2 rounded-lg text-xs font-semibold flex items-center space-x-2 shadow transition border border-earth-400">
+                        <i class="fa-solid fa-file-excel"></i>
+                        <span class="hidden sm:inline">Excel Import / Attachment</span>
+                    </button>
+
+                    <!-- Print Button -->
+                    <button onclick="triggerPrint()" class="bg-amber-600 hover:bg-amber-500 text-white px-3 py-2 rounded-lg text-xs font-semibold flex items-center space-x-1.5 shadow transition">
+                        <i class="fa-solid fa-print"></i>
+                        <span class="hidden sm:inline">Print Form 138</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content Container -->
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 flex-grow w-full space-y-6">
+
+        <!-- Top Action / Student Switcher Card -->
+        <div class="bg-white rounded-2xl shadow-sm border border-earth-200 p-4 no-print">
+            <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                <div class="flex items-center space-x-3">
+                    <div class="w-10 h-10 rounded-full bg-earth-100 text-earth-800 flex items-center justify-center font-bold">
+                        <i class="fa-solid fa-user-graduate"></i>
+                    </div>
+                    <div>
+                        <label for="studentSelect" class="block text-xs font-bold uppercase text-earth-700 tracking-wider">Select Student Profile</label>
+                        <select id="studentSelect" onchange="handleStudentChange()" class="mt-0.5 block w-full sm:w-72 bg-gray-50 border border-gray-300 rounded-lg py-1.5 px-3 text-sm font-semibold text-gray-900 focus:ring-earth-500 focus:border-earth-500">
+                            <!-- Populated dynamically via JS -->
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Template & Share Banner -->
+                <div class="flex items-center space-x-2 bg-earth-50 p-2.5 rounded-xl border border-earth-200 text-xs">
+                    <i class="fa-solid fa-paperclip text-earth-600 text-sm"></i>
+                    <span class="text-earth-900 font-medium">Attached: <code class="font-bold text-earth-800">Grade_VI_Earth_San_Antonio_Este_Template.xlsx</code></span>
+                    <button onclick="loadAttachedTemplate()" class="ml-2 bg-earth-700 hover:bg-earth-800 text-white font-bold px-2.5 py-1 rounded shadow-sm flex items-center space-x-1">
+                        <i class="fa-solid fa-rotate text-xs"></i>
+                        <span>Load Attachment Data</span>
+                    </button>
+                    <button onclick="downloadGradeTemplate()" class="bg-white hover:bg-earth-100 text-earth-800 font-bold px-2.5 py-1 rounded border border-earth-300 shadow-sm flex items-center space-x-1">
+                        <i class="fa-solid fa-download text-earth-600"></i>
+                        <span>Download Template</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Student Profile Dashboard Card -->
+        <div id="studentProfileCard" class="bg-white rounded-2xl shadow-sm border border-earth-200 overflow-hidden no-print">
+            <div class="bg-gradient-to-r from-earth-800 via-earth-700 to-earth-900 p-6 text-white">
+                <div class="flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
+                    <div class="flex items-center space-x-4">
+                        <img id="studentAvatar" src="https://placehold.co/100x100/2d432b/ffffff?text=STUDENT" alt="Student Photo" class="w-20 h-20 rounded-2xl border-2 border-white/80 shadow-md object-cover bg-earth-800">
+                        <div>
+                            <div class="flex items-center space-x-2">
+                                <h2 id="studentNameDisplay" class="text-2xl font-bold tracking-tight">---</h2>
+                                <span id="overallStatusBadge" class="bg-emerald-500 text-white text-xs px-2.5 py-0.5 rounded-full font-bold shadow-sm">
+                                    Passed
+                                </span>
+                            </div>
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-1 mt-1 text-xs text-earth-100">
+                                <div><span class="font-semibold text-earth-200">LRN / ID:</span> <span id="studentLRNDisplay" class="font-mono text-white font-semibold">---</span></div>
+                                <div><span class="font-semibold text-earth-200">Section:</span> Grade VI-Earth</div>
+                                <div><span class="font-semibold text-earth-200">Adviser:</span> <span id="adviserNameDisplay">Angelica Rose C. Lacanlale</span></div>
+                                <div><span class="font-semibold text-earth-200">Academic Year:</span> <span id="displaySY">S.Y. 2026 - 2027</span></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Attendance Summary Card & Parent QR Action -->
+                    <div class="flex items-center space-x-3 w-full md:w-auto justify-between md:justify-end border-t md:border-t-0 pt-4 md:pt-0 border-earth-600/50">
+                        <div class="bg-white/10 backdrop-blur-md rounded-xl p-3 border border-white/10 text-center min-w-[90px]">
+                            <p class="text-[10px] text-earth-200 uppercase tracking-wider font-semibold">Days Present</p>
+                            <p id="daysPresentDisplay" class="text-xl font-extrabold text-white">60</p>
+                        </div>
+                        <div class="bg-white/10 backdrop-blur-md rounded-xl p-3 border border-white/10 text-center min-w-[90px]">
+                            <p class="text-[10px] text-earth-200 uppercase tracking-wider font-semibold">Days Absent</p>
+                            <p id="daysAbsentDisplay" class="text-xl font-extrabold text-amber-300">0</p>
+                        </div>
+                        <button onclick="openParentQRModal()" class="bg-earth-100 hover:bg-white text-earth-900 font-bold p-3 rounded-xl shadow border border-white/40 flex flex-col items-center justify-center transition min-w-[85px]">
+                            <i class="fa-solid fa-qrcode text-lg text-earth-700"></i>
+                            <span class="text-[10px] uppercase font-bold mt-0.5">Parent QR</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Interactive Subject Gradebook Table -->
+        <div class="bg-white rounded-2xl shadow-sm border border-earth-200 overflow-hidden no-print">
+            <div class="p-5 border-b border-earth-100 bg-earth-50/50 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                <div>
+                    <h3 class="text-base font-extrabold text-earth-900 flex items-center space-x-2">
+                        <i class="fa-solid fa-list-check text-earth-600"></i>
+                        <span>Grade VI - Earth Subject Grade Matrix</span>
+                    </h3>
+                    <p class="text-xs text-gray-500">San Antonio Este Elementary School &bull; Inputted grades update averages instantly.</p>
+                </div>
+                <div class="flex items-center space-x-2">
+                    <span id="currentTermTag" class="bg-earth-700 text-white text-xs font-bold px-3 py-1 rounded-full shadow-sm">
+                        Term 1 Grades
+                    </span>
+                </div>
+            </div>
+
+            <div class="overflow-x-auto">
+                <table class="w-full text-left border-collapse">
+                    <thead>
+                        <tr class="bg-earth-100/70 text-earth-900 text-xs uppercase tracking-wider font-bold border-b border-earth-200">
+                            <th class="py-3.5 px-4 min-w-[200px]">Subject Title</th>
+                            <th class="py-3.5 px-3 text-center w-28">Term 1</th>
+                            <th class="py-3.5 px-3 text-center w-28">Term 2</th>
+                            <th class="py-3.5 px-3 text-center w-28">Term 3</th>
+                            <th class="py-3.5 px-3 text-center w-32 bg-earth-200/50">Final Grade</th>
+                            <th class="py-3.5 px-4 text-center w-32">Remarks</th>
+                        </tr>
+                    </thead>
+                    <tbody id="gradebookTbody" class="divide-y divide-gray-200 text-sm">
+                        <!-- Populated dynamically via JS -->
+                    </tbody>
+                    <tfoot class="bg-earth-900 text-white font-bold text-sm">
+                        <tr>
+                            <td class="py-4 px-4 text-right font-extrabold uppercase tracking-wider" colspan="4">General Weighted Average (GWA):</td>
+                            <td class="py-4 px-3 text-center text-lg font-black text-amber-300 bg-earth-950/60" id="gwaDisplay">--.--</td>
+                            <td class="py-4 px-4 text-center" id="gwaRemarkDisplay">
+                                <span class="bg-emerald-600 text-white text-xs font-bold px-2.5 py-1 rounded-full">---</span>
+                            </td>
+                        </tr>
+                    </tfoot>
+                </table>
+            </div>
+        </div>
+
+        <!-- Official Printable Form 138 Report Card -->
+        <div id="printableReportCard" class="bg-white p-6 max-w-4xl mx-auto rounded-xl border border-gray-300">
+            <!-- Official Header -->
+            <div class="text-center border-b-2 border-gray-800 pb-4 mb-6">
+                <div class="flex justify-between items-center px-4 mb-2">
+                    <img src="https://placehold.co/60x60/263825/ffffff?text=DEPED" alt="DepEd Logo" class="w-14 h-14 object-contain">
+                    <div>
+                        <h4 class="text-xs uppercase font-serif tracking-widest text-gray-600">Republic of the Philippines &bull; Department of Education</h4>
+                        <p class="text-xs font-semibold text-gray-700 uppercase tracking-wider">Region III &bull; Schools Division of Nueva Ecija &bull; Lupao District</p>
+                        <h2 class="text-xl font-bold font-serif uppercase tracking-wider text-black">San Antonio Este Elementary School</h2>
+                        <h3 class="text-base font-extrabold uppercase mt-1 tracking-wider text-earth-800">OFFICIAL STUDENT PROGRESS REPORT CARD (FORM 138)</h3>
+                    </div>
+                    <img src="https://placehold.co/60x60/365234/ffffff?text=SEAL" alt="School Seal" class="w-14 h-14 object-contain">
+                </div>
+            </div>
+
+            <!-- Student Info Matrix -->
+            <div class="grid grid-cols-2 gap-4 text-xs border border-gray-400 p-3 mb-6 bg-gray-50/50">
+                <div>
+                    <p><span class="font-bold">Student Name:</span> <span id="printStudentName" class="uppercase font-semibold">---</span></p>
+                    <p><span class="font-bold">LRN / Student ID:</span> <span id="printStudentLRN" class="font-mono">---</span></p>
+                    <p><span class="font-bold">Grade & Section:</span> Grade VI-Earth</p>
+                </div>
+                <div>
+                    <p><span class="font-bold">School Year:</span> <span id="printSY">S.Y. 2026 - 2027</span></p>
+                    <p><span class="font-bold">Class Adviser:</span> <span id="printAdviser">Angelica Rose C. Lacanlale</span></p>
+                    <p><span class="font-bold">School ID / District:</span> San Antonio Este ES (Lupao District)</p>
+                </div>
+            </div>
+
+            <!-- Grades Matrix Table -->
+            <table class="w-full text-xs border-collapse border border-gray-800 mb-6">
+                <thead>
+                    <tr class="bg-gray-200 border-b border-gray-800 text-center font-bold uppercase">
+                        <th class="border border-gray-800 p-2 text-left">Learning Areas (Subjects)</th>
+                        <th class="border border-gray-800 p-2 w-20">Term 1</th>
+                        <th class="border border-gray-800 p-2 w-20">Term 2</th>
+                        <th class="border border-gray-800 p-2 w-20">Term 3</th>
+                        <th class="border border-gray-800 p-2 w-24">Final Grade</th>
+                        <th class="border border-gray-800 p-2 w-28">Remarks</th>
+                    </tr>
+                </thead>
+                <tbody id="printReportCardTbody">
+                    <!-- Dynamic Rows -->
+                </tbody>
+                <tfoot>
+                    <tr class="font-bold bg-gray-100 border-t-2 border-gray-800">
+                        <td class="border border-gray-800 p-2 text-right uppercase">General Average:</td>
+                        <td class="border border-gray-800 p-2 text-center" id="printGWA1">--</td>
+                        <td class="border border-gray-800 p-2 text-center" id="printGWA2">--</td>
+                        <td class="border border-gray-800 p-2 text-center" id="printGWA3">--</td>
+                        <td class="border border-gray-800 p-2 text-center text-sm font-extrabold" id="printFinalGWA">--</td>
+                        <td class="border border-gray-800 p-2 text-center font-bold" id="printFinalRemark">Passed</td>
+                    </tr>
+                </tfoot>
+            </table>
+
+            <!-- Descriptors Reference Table -->
+            <div class="grid grid-cols-2 gap-4 text-[10px] mb-6 border border-gray-300 p-2 bg-gray-50">
+                <div>
+                    <p class="font-bold uppercase text-gray-700">Descriptors & Grading Scale:</p>
+                    <p>Outstanding: 90 - 100 &bull; Very Satisfactory: 85 - 89</p>
+                    <p>Satisfactory: 80 - 84 &bull; Fairly Satisfactory: 75 - 79</p>
+                    <p>Did Not Meet Expectations: Below 75</p>
+                </div>
+                <div>
+                    <p class="font-bold uppercase text-gray-700">Academic Honors Distinction:</p>
+                    <p>With Highest Honors: 98 - 100 &bull; With High Honors: 95 - 97</p>
+                    <p>With Honors: 90 - 94</p>
+                </div>
+            </div>
+
+            <!-- Footer Signatures & Embedded QR Code -->
+            <div class="flex justify-between items-end pt-4 mt-6 border-t border-gray-400">
+                <div class="text-center text-xs">
+                    <p class="font-bold uppercase underline" id="printAdviserSign">Angelica Rose C. Lacanlale</p>
+                    <p class="text-gray-600">Class Adviser (Grade VI-Earth)</p>
+                </div>
+
+                <!-- Verification QR Code -->
+                <div class="text-center flex flex-col items-center">
+                    <img id="printEmbeddedQR" src="" alt="Verification QR" class="w-16 h-16 border p-0.5 bg-white shadow-sm">
+                    <span class="text-[9px] text-gray-500 font-mono mt-1">Official Document Verification</span>
+                </div>
+
+                <div class="text-center text-xs">
+                    <p class="font-bold uppercase underline">School Principal / Administrator</p>
+                    <p class="text-gray-600">San Antonio Este ES</p>
+                </div>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- Excel Import Modal -->
+    <div id="excelModal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4 no-print">
+        <div class="bg-white rounded-2xl shadow-xl border border-earth-200 max-w-lg w-full p-6 space-y-4">
+            <div class="flex justify-between items-center border-b pb-3">
+                <h3 class="text-lg font-bold text-earth-900 flex items-center space-x-2">
+                    <i class="fa-solid fa-file-excel text-emerald-600"></i>
+                    <span>Bulk Excel Grade Import & Attachment</span>
+                </h3>
+                <button onclick="closeExcelModal()" class="text-gray-400 hover:text-gray-600 text-lg">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+
+            <p class="text-xs text-gray-600">Upload or reload the attached file <code class="font-bold text-earth-800 bg-earth-50 px-1 py-0.5 rounded border border-earth-200">Grade_VI_Earth_San_Antonio_Este_Template.xlsx</code> to populate grades for <b>Grade VI - Earth</b> subjects.</p>
+
+            <div class="space-y-3">
+                <label class="block text-xs font-bold text-gray-700">1. Target Term:</label>
+                <select id="excelTargetTerm" class="w-full text-xs font-bold p-2 border rounded-lg bg-gray-50">
+                    <option value="Term 1">Term 1</option>
+                    <option value="Term 2">Term 2</option>
+                    <option value="Term 3">Term 3</option>
+                </select>
+
+                <label class="block text-xs font-bold text-gray-700">2. Select Excel File:</label>
+                <input type="file" id="excelFileInput" accept=".xlsx, .xls, .csv" class="w-full text-xs text-gray-500 file:mr-3 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-earth-100 file:text-earth-800 hover:file:bg-earth-200">
+            </div>
+
+            <div class="bg-amber-50 border border-amber-200 p-3 rounded-lg text-amber-800 text-[11px] space-y-1">
+                <p class="font-bold"><i class="fa-solid fa-circle-exclamation mr-1"></i>Format Note:</p>
+                <p>Use the downloadable template for exact column mapping (Filipino, English, Mathematics, Science, AP, GMRC, EPP, Music & Arts, PE & Health).</p>
+            </div>
+
+            <div class="flex justify-between items-center pt-2">
+                <button onclick="downloadGradeTemplate()" class="text-earth-700 text-xs font-bold hover:underline flex items-center space-x-1">
+                    <i class="fa-solid fa-download"></i>
+                    <span>Download Template</span>
+                </button>
+                <div class="space-x-2">
+                    <button onclick="closeExcelModal()" class="px-3 py-1.5 bg-gray-200 text-gray-700 text-xs font-bold rounded-lg hover:bg-gray-300">Cancel</button>
+                    <button onclick="processExcelUpload()" class="px-4 py-1.5 bg-earth-700 text-white text-xs font-bold rounded-lg hover:bg-earth-800">Process Import</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Parent Access QR Modal -->
+    <div id="parentQRModal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4 no-print">
+        <div class="bg-white rounded-2xl shadow-xl border border-earth-200 max-w-sm w-full p-6 text-center space-y-4">
+            <div class="flex justify-between items-center border-b pb-2">
+                <h3 class="text-base font-bold text-earth-900">Parent Portal Access QR</h3>
+                <button onclick="closeParentQRModal()" class="text-gray-400 hover:text-gray-600">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+
+            <div class="bg-earth-50 p-4 rounded-2xl border border-earth-100 flex flex-col items-center">
+                <img id="parentModalQR" src="" alt="Parent QR Code" class="w-44 h-44 rounded-lg shadow border bg-white p-2">
+                <p id="parentModalStudentName" class="font-bold text-earth-900 text-sm mt-3">---</p>
+                <p id="parentModalStudentLRN" class="text-xs font-mono text-earth-600">LRN: ---</p>
+            </div>
+
+            <p class="text-xs text-gray-500">Scan this QR code with a mobile camera to view real-time term grades and digital progress report for Grade VI - Earth.</p>
+
+            <div class="flex items-center space-x-2 pt-2">
+                <button onclick="copyParentLink()" class="flex-1 bg-earth-100 hover:bg-earth-200 text-earth-800 font-bold py-2 rounded-lg text-xs border border-earth-300">
+                    <i class="fa-regular fa-copy mr-1"></i> Copy Link
+                </button>
+                <button onclick="closeParentQRModal()" class="flex-1 bg-earth-700 hover:bg-earth-800 text-white font-bold py-2 rounded-lg text-xs">
+                    Done
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Database of Students in Grade VI - Earth for S.Y. 2026-2027 (Terms 1, 2, 3)
+        const studentsDatabase = [
+            {
+                id: "109823001",
+                name: "Dela Cruz, Juan Paolo M.",
+                avatar: "https://placehold.co/100x100/2d432b/ffffff?text=JDC",
+                adviser: "Angelica Rose C. Lacanlale",
+                daysPresent: 58,
+                daysAbsent: 2,
+                grades: {
+                    "Term 1": {
+                        "Filipino": 90,
+                        "English": 92,
+                        "Mathematics": 88,
+                        "Science": 94,
+                        "Araling Panlipunan": 95,
+                        "GMRC": 97,
+                        "EPP": 92,
+                        "Music and Arts": 90,
+                        "Physical Education and Health": 93
+                    },
+                    "Term 2": {
+                        "Filipino": 88,
+                        "English": 90,
+                        "Mathematics": 86,
+                        "Science": 92,
+                        "Araling Panlipunan": 93,
+                        "GMRC": 95,
+                        "EPP": 90,
+                        "Music and Arts": 89,
+                        "Physical Education and Health": 91
+                    },
+                    "Term 3": {
+                        "Filipino": 91,
+                        "English": 93,
+                        "Mathematics": 90,
+                        "Science": 95,
+                        "Araling Panlipunan": 96,
+                        "GMRC": 97,
+                        "EPP": 93,
+                        "Music and Arts": 92,
+                        "Physical Education and Health": 94
+                    }
+                }
+            },
+            {
+                id: "109823002",
+                name: "Reyes, Sophia Beatriz A.",
+                avatar: "https://placehold.co/100x100/365234/ffffff?text=SBR",
+                adviser: "Angelica Rose C. Lacanlale",
+                daysPresent: 60,
+                daysAbsent: 0,
+                grades: {
+                    "Term 1": {
+                        "Filipino": 94,
+                        "English": 96,
+                        "Mathematics": 95,
+                        "Science": 98,
+                        "Araling Panlipunan": 97,
+                        "GMRC": 99,
+                        "EPP": 96,
+                        "Music and Arts": 95,
+                        "Physical Education and Health": 96
+                    },
+                    "Term 2": {
+                        "Filipino": 93,
+                        "English": 95,
+                        "Mathematics": 94,
+                        "Science": 97,
+                        "Araling Panlipunan": 96,
+                        "GMRC": 98,
+                        "EPP": 95,
+                        "Music and Arts": 94,
+                        "Physical Education and Health": 95
+                    },
+                    "Term 3": {
+                        "Filipino": 95,
+                        "English": 97,
+                        "Mathematics": 96,
+                        "Science": 98,
+                        "Araling Panlipunan": 98,
+                        "GMRC": 99,
+                        "EPP": 97,
+                        "Music and Arts": 96,
+                        "Physical Education and Health": 97
+                    }
+                }
+            },
+            {
+                id: "109823003",
+                name: "Alvarez, Mateo Lorenzo C.",
+                avatar: "https://placehold.co/100x100/426640/ffffff?text=MLA",
+                adviser: "Angelica Rose C. Lacanlale",
+                daysPresent: 55,
+                daysAbsent: 5,
+                grades: {
+                    "Term 1": {
+                        "Filipino": 80,
+                        "English": 78,
+                        "Mathematics": 74,
+                        "Science": 76,
+                        "Araling Panlipunan": 82,
+                        "GMRC": 85,
+                        "EPP": 79,
+                        "Music and Arts": 81,
+                        "Physical Education and Health": 82
+                    },
+                    "Term 2": {
+                        "Filipino": 82,
+                        "English": 80,
+                        "Mathematics": 76,
+                        "Science": 78,
+                        "Araling Panlipunan": 84,
+                        "GMRC": 87,
+                        "EPP": 81,
+                        "Music and Arts": 83,
+                        "Physical Education and Health": 84
+                    },
+                    "Term 3": {
+                        "Filipino": 84,
+                        "English": 82,
+                        "Mathematics": 78,
+                        "Science": 80,
+                        "Araling Panlipunan": 86,
+                        "GMRC": 89,
+                        "EPP": 83,
+                        "Music and Arts": 85,
+                        "Physical Education and Health": 86
+                    }
+                }
+            }
+        ];
+
+        // Subject list in required exact order
+        const subjectList = [
+            "Filipino",
+            "English",
+            "Mathematics",
+            "Science",
+            "Araling Panlipunan",
+            "GMRC",
+            "EPP",
+            "Music and Arts",
+            "Physical Education and Health"
+        ];
+
+        let currentStudentIndex = 0;
+        let activeTerm = "Term 1";
+
+        // Initialize Application
+        window.onload = function () {
+            populateStudentDropdown();
+            renderActiveStudent();
+        };
+
+        function populateStudentDropdown() {
+            const select = document.getElementById('studentSelect');
+            select.innerHTML = '';
+            studentsDatabase.forEach((student, idx) => {
+                const opt = document.createElement('option');
+                opt.value = idx;
+                opt.textContent = `${student.name} (${student.id})`;
+                select.appendChild(opt);
+            });
+        }
+
+        function getCurrentStudent() {
+            return studentsDatabase[currentStudentIndex];
+        }
+
+        function handleStudentChange() {
+            currentStudentIndex = parseInt(document.getElementById('studentSelect').value) || 0;
+            renderActiveStudent();
+        }
+
+        function handleTermChange() {
+            activeTerm = document.getElementById('termSelect').value;
+            renderActiveStudent();
+        }
+
+        function renderActiveStudent() {
+            const student = getCurrentStudent();
+            const currentSY = document.getElementById('sySelect').value;
+            
+            // Render Profile Info
+            document.getElementById('studentNameDisplay').textContent = student.name;
+            document.getElementById('studentLRNDisplay').textContent = student.id;
+            document.getElementById('adviserNameDisplay').textContent = student.adviser;
+            document.getElementById('displaySY').textContent = currentSY;
+            document.getElementById('studentAvatar').src = student.avatar;
+            document.getElementById('daysPresentDisplay').textContent = student.daysPresent;
+            document.getElementById('daysAbsentDisplay').textContent = student.daysAbsent;
+
+            // Render Print Document Info
+            document.getElementById('printStudentName').textContent = student.name;
+            document.getElementById('printStudentLRN').textContent = student.id;
+            document.getElementById('printSY').textContent = currentSY;
+            document.getElementById('printAdviser').textContent = student.adviser;
+            document.getElementById('printAdviserSign').textContent = student.adviser;
+
+            // Tag Header
+            const tNames = { "Term 1": "Term 1 Grades", "Term 2": "Term 2 Grades", "Term 3": "Term 3 Grades", "FINAL": "Final Summary" };
+            document.getElementById('currentTermTag').textContent = tNames[activeTerm] || "Term 1 Grades";
+
+            // Render Tables
+            renderGradebookTable(student);
+            renderPrintReportCardTable(student);
+            generateEmbeddedPrintQR(student);
+        }
+
+        function renderGradebookTable(student) {
+            const tbody = document.getElementById('gradebookTbody');
+            tbody.innerHTML = '';
+
+            let term1Sum = 0, term2Sum = 0, term3Sum = 0, finalSum = 0;
+            let count = subjectList.length;
+
+            subjectList.forEach((subj) => {
+                const t1 = student.grades["Term 1"][subj] || 0;
+                const t2 = student.grades["Term 2"][subj] || 0;
+                const t3 = student.grades["Term 3"][subj] || 0;
+                const finalGrade = Math.round((t1 + t2 + t3) / 3);
+
+                term1Sum += t1;
+                term2Sum += t2;
+                term3Sum += t3;
+                finalSum += finalGrade;
+
+                const tr = document.createElement('tr');
+                tr.className = "hover:bg-earth-50/60 transition";
+
+                tr.innerHTML = `
+                    <td class="py-3 px-4 font-bold text-gray-900 border-b border-gray-100 flex items-center space-x-2">
+                        <i class="fa-solid fa-book-bookmark text-earth-500 text-xs"></i>
+                        <span>${subj}</span>
+                    </td>
+                    <td class="py-2 px-3 text-center border-b border-gray-100">
+                        <input type="number" min="50" max="100" value="${t1}" onchange="updateGrade('${subj}', 'Term 1', this.value)" class="w-16 text-center border border-gray-300 rounded p-1 font-semibold focus:ring-2 focus:ring-earth-500 focus:outline-none">
+                    </td>
+                    <td class="py-2 px-3 text-center border-b border-gray-100">
+                        <input type="number" min="50" max="100" value="${t2}" onchange="updateGrade('${subj}', 'Term 2', this.value)" class="w-16 text-center border border-gray-300 rounded p-1 font-semibold focus:ring-2 focus:ring-earth-500 focus:outline-none">
+                    </td>
+                    <td class="py-2 px-3 text-center border-b border-gray-100">
+                        <input type="number" min="50" max="100" value="${t3}" onchange="updateGrade('${subj}', 'Term 3', this.value)" class="w-16 text-center border border-gray-300 rounded p-1 font-semibold focus:ring-2 focus:ring-earth-500 focus:outline-none">
+                    </td>
+                    <td class="py-3 px-3 text-center font-extrabold text-earth-900 bg-earth-50/50 border-b border-gray-100 text-base">
+                        ${finalGrade}
+                    </td>
+                    <td class="py-3 px-4 text-center border-b border-gray-100">
+                        ${getRemarkBadge(finalGrade)}
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+
+            // Compute overall averages
+            const avg1 = Math.round(term1Sum / count);
+            const avg2 = Math.round(term2Sum / count);
+            const avg3 = Math.round(term3Sum / count);
+            const overallGWA = Math.round((avg1 + avg2 + avg3) / 3);
+
+            let activeGWA = overallGWA;
+            if (activeTerm === "Term 1") activeGWA = avg1;
+            else if (activeTerm === "Term 2") activeGWA = avg2;
+            else if (activeTerm === "Term 3") activeGWA = avg3;
+
+            document.getElementById('gwaDisplay').textContent = activeGWA;
+            document.getElementById('gwaRemarkDisplay').innerHTML = getHonorBadge(activeGWA);
+            document.getElementById('overallStatusBadge').innerHTML = activeGWA >= 75 ? 'Passed' : 'Needs Improvement';
+            document.getElementById('overallStatusBadge').className = activeGWA >= 75 ? 'bg-emerald-600 text-white text-xs px-2.5 py-0.5 rounded-full font-bold shadow-sm' : 'bg-rose-600 text-white text-xs px-2.5 py-0.5 rounded-full font-bold shadow-sm';
+        }
+
+        function renderPrintReportCardTable(student) {
+            const tbody = document.getElementById('printReportCardTbody');
+            tbody.innerHTML = '';
+
+            let term1Sum = 0, term2Sum = 0, term3Sum = 0, finalSum = 0;
+            let count = subjectList.length;
+
+            subjectList.forEach((subj) => {
+                const t1 = student.grades["Term 1"][subj] || 0;
+                const t2 = student.grades["Term 2"][subj] || 0;
+                const t3 = student.grades["Term 3"][subj] || 0;
+                const finalGrade = Math.round((t1 + t2 + t3) / 3);
+
+                term1Sum += t1;
+                term2Sum += t2;
+                term3Sum += t3;
+                finalSum += finalGrade;
+
+                const tr = document.createElement('tr');
+                tr.className = "text-center border-b border-gray-800";
+                tr.innerHTML = `
+                    <td class="border border-gray-800 p-1.5 text-left font-semibold">${subj}</td>
+                    <td class="border border-gray-800 p-1.5">${t1}</td>
+                    <td class="border border-gray-800 p-1.5">${t2}</td>
+                    <td class="border border-gray-800 p-1.5">${t3}</td>
+                    <td class="border border-gray-800 p-1.5 font-bold">${finalGrade}</td>
+                    <td class="border border-gray-800 p-1.5">${finalGrade >= 75 ? 'Passed' : 'Failed'}</td>
+                `;
+                tbody.appendChild(tr);
+            });
+
+            const avg1 = Math.round(term1Sum / count);
+            const avg2 = Math.round(term2Sum / count);
+            const avg3 = Math.round(term3Sum / count);
+            const finalGWA = Math.round((avg1 + avg2 + avg3) / 3);
+
+            document.getElementById('printGWA1').textContent = avg1;
+            document.getElementById('printGWA2').textContent = avg2;
+            document.getElementById('printGWA3').textContent = avg3;
+            document.getElementById('printFinalGWA').textContent = finalGWA;
+            document.getElementById('printFinalRemark').textContent = finalGWA >= 75 ? 'PASSED' : 'FAILED';
+        }
+
+        function updateGrade(subject, term, value) {
+            const num = parseInt(value) || 0;
+            const student = getCurrentStudent();
+            if (student.grades[term]) {
+                student.grades[term][subject] = num;
+            }
+            renderActiveStudent();
+        }
+
+        function getRemarkBadge(score) {
+            if (score >= 90) return `<span class="bg-emerald-100 text-emerald-800 text-xs px-2 py-0.5 rounded font-bold border border-emerald-300">Passed (Honors)</span>`;
+            if (score >= 75) return `<span class="bg-blue-100 text-blue-800 text-xs px-2 py-0.5 rounded font-bold border border-blue-300">Passed</span>`;
+            return `<span class="bg-rose-100 text-rose-800 text-xs px-2 py-0.5 rounded font-bold border border-rose-300">Failed</span>`;
+        }
+
+        function getHonorBadge(gwa) {
+            if (gwa >= 98) return `<span class="bg-amber-400 text-earth-950 text-xs font-black px-2.5 py-1 rounded-full shadow">With Highest Honors</span>`;
+            if (gwa >= 95) return `<span class="bg-amber-300 text-earth-950 text-xs font-bold px-2.5 py-1 rounded-full shadow">With High Honors</span>`;
+            if (gwa >= 90) return `<span class="bg-emerald-400 text-earth-950 text-xs font-bold px-2.5 py-1 rounded-full shadow">With Honors</span>`;
+            if (gwa >= 75) return `<span class="bg-emerald-600 text-white text-xs font-bold px-2.5 py-1 rounded-full">Passed</span>`;
+            return `<span class="bg-rose-600 text-white text-xs font-bold px-2.5 py-1 rounded-full">Failed</span>`;
+        }
+
+        function openExcelModal() {
+            document.getElementById('excelModal').classList.remove('hidden');
+        }
+
+        function closeExcelModal() {
+            document.getElementById('excelModal').classList.add('hidden');
+        }
+
+        function openParentQRModal() {
+            const student = getCurrentStudent();
+            document.getElementById('parentModalStudentName').textContent = student.name;
+            document.getElementById('parentModalStudentLRN').textContent = `LRN: ${student.id}`;
+            const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=https://sanantonioeste.deped.gov.ph/reportcard?lrn=${student.id}`;
+            document.getElementById('parentModalQR').src = qrUrl;
+            document.getElementById('parentQRModal').classList.remove('hidden');
+        }
+
+        function closeParentQRModal() {
+            document.getElementById('parentQRModal').classList.add('hidden');
+        }
+
+        function copyParentLink() {
+            const student = getCurrentStudent();
+            const text = `https://sanantonioeste.deped.gov.ph/reportcard?lrn=${student.id}`;
+            const dummy = document.createElement("input");
+            document.body.appendChild(dummy);
+            dummy.value = text;
+            dummy.select();
+            document.execCommand("copy");
+            document.body.removeChild(dummy);
+            showNotification("Parent Portal verification link copied to clipboard!");
+        }
+
+        function generateEmbeddedPrintQR(student) {
+            const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=100x100&data=VERIFIED-SAN-ANTONIO-ESTE-LRN-${student.id}`;
+            document.getElementById('printEmbeddedQR').src = qrUrl;
+        }
+
+        function triggerPrint() {
+            window.print();
+        }
+
+        function loadAttachedTemplate() {
+            // Re-sync and load attached Grade_VI_Earth_San_Antonio_Este_Template data
+            renderActiveStudent();
+            showNotification("Loaded attachment 'Grade_VI_Earth_San_Antonio_Este_Template.xlsx' into Gradebook!");
+        }
+
+        function downloadGradeTemplate() {
+            const data = [
+                ["LRN", "Student Name", "Filipino", "English", "Mathematics", "Science", "Araling Panlipunan", "GMRC", "EPP", "Music and Arts", "Physical Education and Health"],
+                ...studentsDatabase.map(s => [s.id, s.name, 90, 90, 90, 90, 90, 90, 90, 90, 90])
+            ];
+
+            const ws = XLSX.utils.aoa_to_sheet(data);
+            const wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, ws, "Grade VI - Earth Template");
+            XLSX.writeFile(wb, "Grade_VI_Earth_San_Antonio_Este_Template.xlsx");
+        }
+
+        function processExcelUpload() {
+            const fileInput = document.getElementById('excelFileInput');
+            const targetTerm = document.getElementById('excelTargetTerm').value;
+
+            if (!fileInput.files.length) {
+                showNotification("Please select an Excel file or attachment to upload.", true);
+                return;
+            }
+
+            const file = fileInput.files[0];
+            const reader = new FileReader();
+
+            reader.onload = function (e) {
+                try {
+                    const data = new Uint8Array(e.target.result);
+                    const workbook = XLSX.read(data, { type: 'array' });
+                    const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
+                    const json = XLSX.utils.sheet_to_json(firstSheet);
+
+                    json.forEach(row => {
+                        const lrn = String(row["LRN"] || "").trim();
+                        const student = studentsDatabase.find(s => s.id === lrn);
+                        if (student && student.grades[targetTerm]) {
+                            subjectList.forEach(subj => {
+                                if (row[subj] !== undefined) {
+                                    student.grades[targetTerm][subj] = parseInt(row[subj]) || 0;
+                                }
+                            });
+                        }
+                    });
+
+                    renderActiveStudent();
+                    closeExcelModal();
+                    showNotification(`Successfully imported template grades for ${targetTerm}!`);
+                } catch (err) {
+                    showNotification("Error processing Excel file. Please ensure you are using the correct template format.", true);
+                }
+            };
+
+            reader.readAsArrayBuffer(file);
+        }
+
+        function showNotification(message, isError = false) {
+            const toast = document.createElement('div');
+            toast.className = `fixed bottom-5 right-5 text-white text-xs font-bold px-4 py-3 rounded-xl shadow-lg z-50 transition transform duration-300 ${isError ? 'bg-rose-600' : 'bg-earth-800'}`;
+            toast.innerHTML = `<i class="fa-solid ${isError ? 'fa-circle-exclamation' : 'fa-circle-check'} mr-2"></i> ${message}`;
+            document.body.appendChild(toast);
+            setTimeout(() => toast.remove(), 3500);
+        }
+    </script>
+</body>
+</html>
